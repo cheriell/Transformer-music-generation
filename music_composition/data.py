@@ -128,8 +128,10 @@ class MusicCompDataset(torch.utils.data.Dataset):
         sequence = sequence[start:start+Vocabulary.MAX_LENGTH]
         # to numpy
         sequence = np.array(sequence)
+        sequence_pad = np.ones(Vocabulary.MAX_LENGTH, dtype=int) * Vocabulary.PAD_INDEX
+        sequence_pad[:len(sequence)] = sequence
 
-        return sequence
+        return sequence_pad
 
 class OneHotEncodingNoteSequence(note_seq.encoder_decoder.OneHotEncoding):
     """Define one hot encoding using our vocabulary"""

@@ -11,15 +11,16 @@ import torch.nn as nn
 import pytorch_lightning as pl
 
 from data import Vocabulary
+import constants as const
 
 
 class MusicCompTransformerModel(pl.LightningModule):
 
     def __init__(self, vocab_size: int,
-                embedding_size: Optional[int] = 128,
-                d_model: Optional[int] = 128,
-                nhead: Optional[int] = 8,
-                num_layers: Optional[int] = 4):
+                embedding_size: Optional[int] = const.embedding_size,
+                d_model: Optional[int] = const.d_model,
+                nhead: Optional[int] = const.nhead,
+                num_layers: Optional[int] = const.num_layers):
         """Create a Transformer-based music composition model.
 
         Args:
@@ -34,7 +35,7 @@ class MusicCompTransformerModel(pl.LightningModule):
         self.embedding_layer = nn.Embedding(vocab_size, embedding_size)
         
         encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead)
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=4)
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         
         self.output_layer = nn.Linear(in_features=d_model, out_features=vocab_size)
 
@@ -112,7 +113,10 @@ class MusicCompTransformerModel(pl.LightningModule):
             target_string = ' '.join(list(target_sequence[target_sequence != Vocabulary.PAD_INDEX].astype(str)))
             predict_string = ' '.join(list(predict_sequence[predict_sequence != Vocabulary.PAD_INDEX].astype(str)))
             # udpate wer
-            word_error_rate.append(wer(target_string, predict_string))
+            if target_string != '':
+                word_error_rate.append(wer(target_string, predict_string))
+            else:
+                word_error_rate.append(1.)
         
         # get logs
         logs = {'epoch': self.current_epoch,
@@ -143,7 +147,10 @@ class MusicCompTransformerModel(pl.LightningModule):
             target_string = ' '.join(list(target_sequence[target_sequence != Vocabulary.PAD_INDEX].astype(str)))
             predict_string = ' '.join(list(predict_sequence[predict_sequence != Vocabulary.PAD_INDEX].astype(str)))
             # udpate wer
-            word_error_rate.append(wer(target_string, predict_string))
+            if target_string != '':
+                word_error_rate.append(wer(target_string, predict_string))
+            else:
+                word_error_rate.append(1.)
         
         # get logs
         logs = {'epoch': self.current_epoch,
@@ -190,4 +197,4 @@ def train_model(gpus):
     trainer = pl.Trainer(gpus=gpus, reload_dataloaders_every_epoch=True)
     trainer.fit(model, datamodule=datamodule)
 
-train_model(gpus=[1])
+train_model(gpus=[const.gpu])

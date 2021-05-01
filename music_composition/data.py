@@ -261,12 +261,3 @@ class Vocabulary(object):
 
         # save to csv file
         df.to_csv(csv_file, index=False)
-
-    
-# datamodule = MusicCompDataModule()
-# datamodule.prepare_data()
-# datamodule.setup()
-# train_loader = datamodule.train_dataloader()
-
-# for batch in train_loader:
-#     print(batch)

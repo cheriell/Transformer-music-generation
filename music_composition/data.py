@@ -10,16 +10,15 @@ import pandas as pd
 import numpy as np
 import pickle
 import torch
-
 import pytorch_lightning as pl
 
-import configs as cf
 
-
-vocabulary_csv_file = '../metadata/vocabulary.csv'
-note_sequence_cache_folder = '../metadata/note_sequence_cache'
+GiantMIDI_Piano_folder = '/import/c4dm-datasets/GiantMIDI-Piano/midis/'
+vocabulary_csv_file = os.path.join(sys.path[0], '../metadata/vocabulary.csv')
+note_sequence_cache_folder = os.path.join(sys.path[0], '../metadata/note_sequence_cache')
 if not os.path.exists(note_sequence_cache_folder):
     os.makedirs(note_sequence_cache_folder)
+
 
 class MusicCompDataModule(pl.LightningDataModule):
     """Music composition data module."""
@@ -34,8 +33,8 @@ class MusicCompDataModule(pl.LightningDataModule):
         
         Get midi files in the dataset
         """
-        midi_files = os.listdir(cf.GiantMIDI_Piano_folder)
-        self.midi_files = [os.path.join(cf.GiantMIDI_Piano_folder, f) for f in midi_files]
+        midi_files = os.listdir(GiantMIDI_Piano_folder)
+        self.midi_files = [os.path.join(GiantMIDI_Piano_folder, f) for f in midi_files]
 
     def setup(self, stage: Optional[str] = None):
         """Override setup()
@@ -67,7 +66,6 @@ class MusicCompDataModule(pl.LightningDataModule):
             # read vocabulary from csv file
             vocabulary = Vocabulary._from_csv(vocabulary_csv_file)
 
-    ##################################
     ## in the following, override train/val/test dataloaders
     def train_dataloader(self):
         dataset = MusicCompDataset(self.midi_files_train)
@@ -155,8 +153,14 @@ class OneHotEncodingNoteSequence(note_seq.encoder_decoder.OneHotEncoding):
 
     def decode_event(self, index):
         word = self.vocabulary.index2word[index]
-
-        return None
+        if word[0] == '<':  # is <PAD>, <UNK>, <SOS> or <EOS>
+            return None
+        else:
+            event_type_info, event_value_info = word.split('(')[1].split(')')[0].split(', ')
+            event_type = int(event_type_info.split('=')[1])
+            event_value = int(event_value_info.split('=')[1])
+            performance_event = note_seq.performance_lib.PerformanceEvent(event_type=event_type, event_value=event_value)
+            return performance_event
 
 
 class Vocabulary(object):

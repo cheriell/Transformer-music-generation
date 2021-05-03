@@ -1,5 +1,7 @@
+import warnings
+warnings.filterwarnings('ignore')
 import os
-
+import sys
 from typing import Optional
 import math
 from functools import reduce
@@ -18,7 +20,6 @@ class MusicCompTransformerModel(pl.LightningModule):
 
     def __init__(self, vocab_size: int,
                 embedding_size: Optional[int] = const.embedding_size,
-                d_model: Optional[int] = const.d_model,
                 nhead: Optional[int] = const.nhead,
                 num_layers: Optional[int] = const.num_layers):
         """Create a Transformer-based music composition model.
@@ -26,20 +27,17 @@ class MusicCompTransformerModel(pl.LightningModule):
         Args:
             vocab_size: vocabulary size of the NoteSeqeunce representation.
             embedding_size: embedding size.
-            d_model: the number of expected features in the Transformer input.
             nhead: the number of heads in the multiheadattention models.
             num_layers: the number of sub-encoder-layers in the transformer encoder.
         """
         super(MusicCompTransformerModel, self).__init__()
+        self.d_model = embedding_size
 
         self.embedding_layer = nn.Embedding(vocab_size, embedding_size)
-        
-        encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead)
+        encoder_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=nhead)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        
-        self.output_layer = nn.Linear(in_features=d_model, out_features=vocab_size)
+        self.output_layer = nn.Linear(in_features=self.d_model, out_features=vocab_size)
 
-        self.d_model = d_model
         self.configure_loss_function()
 
     def forward(self, src: torch.Tensor, 
@@ -164,7 +162,7 @@ class MusicCompTransformerModel(pl.LightningModule):
     def training_epoch_end(self, outputs):
         # save logs
         new_logs = pd.DataFrame([output['logs'] for output in outputs])
-        logs_file = f'lightning_logs/version_{self.trainer.logger.version}/training_logs.csv'
+        logs_file = os.path.join(sys.path[0], f'lightning_logs/version_{self.trainer.logger.version}/training_logs.csv')
         if os.path.exists(logs_file):
             logs = pd.read_csv(logs_file)
             logs = pd.concat([logs, new_logs], ignore_index=True)
@@ -175,7 +173,7 @@ class MusicCompTransformerModel(pl.LightningModule):
     def validation_epoch_end(self, outputs):
         # save logs
         new_logs = pd.DataFrame([output['val_logs'] for output in outputs])
-        val_logs_file = f'lightning_logs/version_{self.trainer.logger.version}/validation_logs.csv'
+        val_logs_file = os.path.join(sys.path[0], f'lightning_logs/version_{self.trainer.logger.version}/validation_logs.csv')
         if os.path.exists(val_logs_file):
             logs_valid = pd.read_csv(val_logs_file)
             logs_valid = pd.concat([logs_valid, new_logs], ignore_index=True)
@@ -184,11 +182,7 @@ class MusicCompTransformerModel(pl.LightningModule):
         logs_valid.to_csv(val_logs_file, index=False)
 
 
-
-
 def train_model(gpus):
-    import warnings
-    warnings.filterwarnings('ignore')
     from data import Vocabulary, vocabulary_csv_file, MusicCompDataModule
 
     vocabulary = Vocabulary._from_csv(vocabulary_csv_file)
@@ -197,4 +191,4 @@ def train_model(gpus):
     trainer = pl.Trainer(gpus=gpus, reload_dataloaders_every_epoch=True)
     trainer.fit(model, datamodule=datamodule)
 
-train_model(gpus=[const.gpu])
+# train_model(gpus=[const.gpu])

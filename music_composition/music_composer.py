@@ -34,9 +34,11 @@ class MusicComp(object):
 
         Args:
             seed: seed saved in a midi file, if None, start from <SOS>.
+            seed_length: maximum length to the note sequence representation to use as seed.
             steps: number of steps to compose following the given seed.
             gpu: set GPU id if use gpu to predict, otherwise use CPU.
             diversity: generate music from top k=diversity predictions.
+            output_file: filename to the generated midi output.
         """
         # setup device
         if gpu is not None:
@@ -104,9 +106,9 @@ class MusicComp(object):
         return note_sequence
         
 
-music_composer = MusicComp()
-data_module = MusicCompDataModule()
-data_module.prepare_data()
-data_module.setup()
-music_composer.compose(seed=data_module.midi_files_test[1], gpu=0)
+# music_composer = MusicComp()
+# data_module = MusicCompDataModule()
+# data_module.prepare_data()
+# data_module.setup()
+# music_composer.compose(seed=data_module.midi_files_test[1], gpu=0)
 # music_composer.compose(gpu=0)

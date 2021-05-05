@@ -13,7 +13,6 @@ import torch
 import pytorch_lightning as pl
 
 
-GiantMIDI_Piano_folder = '/import/c4dm-datasets/GiantMIDI-Piano/midis/'
 vocabulary_csv_file = os.path.join(sys.path[0], '../metadata/vocabulary.csv')
 note_sequence_cache_folder = os.path.join(sys.path[0], '../metadata/note_sequence_cache')
 if not os.path.exists(note_sequence_cache_folder):
@@ -23,18 +22,20 @@ if not os.path.exists(note_sequence_cache_folder):
 class MusicCompDataModule(pl.LightningDataModule):
     """Music composition data module."""
 
-    def __init__(self, batch_size: Optional[int] = 1):
+    def __init__(self, batch_size: Optional[int] = 1,
+                    dataset_path: Optional[str] = '/import/c4dm-datasets/GiantMIDI-Piano/midis/'):
         super(MusicCompDataModule, self).__init__()
 
         self.batch_size = batch_size
+        self.dataset_path = dataset_path
 
     def prepare_data(self):
         """Override prepare_data()
         
         Get midi files in the dataset
         """
-        midi_files = os.listdir(GiantMIDI_Piano_folder)
-        self.midi_files = [os.path.join(GiantMIDI_Piano_folder, f) for f in midi_files]
+        midi_files = os.listdir(self.dataset_path)
+        self.midi_files = [os.path.join(self.dataset_path, f) for f in midi_files]
 
     def setup(self, stage: Optional[str] = None):
         """Override setup()

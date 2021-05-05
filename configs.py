@@ -1,1 +1,0 @@
-GiantMIDI_Piano_folder = '/import/c4dm-datasets/GiantMIDI-Piano/midis/'

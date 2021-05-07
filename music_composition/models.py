@@ -80,8 +80,8 @@ class MusicCompTransformerModel(pl.LightningModule):
 
     ### in the following, override model training functions
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=0.001, betas=(0.8, 0.8), eps=1e-4, weight_decay=2e-4)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.99)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=0.001, betas=(0.8, 0.8), eps=1e-4, weight_decay=const.weight_decay)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=const.gamma)
         return [optimizer], [scheduler]
 
     def configure_callbacks(self):

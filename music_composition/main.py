@@ -28,6 +28,7 @@ def compose(args):
     """Generate new midi from a seed.
 
     Args:
+        args.model_checkpoint: path to the pre-trained model checkpoint.
         args.seed_midi: seed saved in a midi file, if None, start from <SOS>.
         args.seed_length: maximum length to the note sequence representation to use as seed.
         args.steps: number of steps to compose following the given seed.
@@ -35,7 +36,7 @@ def compose(args):
         args.diversity: generate music from top k=diversity predictions.
         args.output_file: filename to the generated midi output.
     """
-    music_composer = MusicComp()
+    music_composer = MusicComp(model_checkpoint=args.model_checkpoint)
     data_module = MusicCompDataModule()
     data_module.prepare_data()
     data_module.setup()
@@ -54,15 +55,16 @@ if __name__ == '__main__':
 
     parser_train = subparsers.add_parser('train')
     parser_train.add_argument('--gpu', type=int, default=None, help='set GPU id to for model training')
-    parser_train.add_argument('--dataset_path', type=int, default=os.path.join(sys.path[0], 'GiantMIDI-Piano/midis/', help='path to the GiantMIDI-Piano dataset')
+    parser_train.add_argument('--dataset_path', type=str, default=os.path.join(sys.path[0], '../GiantMIDI-Piano/midis/'), help='path to the GiantMIDI-Piano dataset')
 
     parser_compose = subparsers.add_parser('compose')
+    parser_compose.add_argument('--model_checkpoint', type=str, default=os.path.join(sys.path[0], '../model_checkpoint/model_checkpoint.ckpt'), help='path to the pre-trained model checkpoint')
     parser_compose.add_argument('--seed_midi', type=str, default=None, help='seed saved in a midi file, if None, start from <SOS>.')
     parser_compose.add_argument('--seed_length', type=int, default=1000, help='maximum length to the note sequence representation to use as seed.')
-    parser_compose.add_argument('--steps', type=int, default=2000, help='number of steps to compose following the given seed.')
-    parser_compose.add_argument('--diversity', type=int, default=30, help='generate music from top k=diversity predictions.')
+    parser_compose.add_argument('--steps', type=int, default=1000, help='number of steps to compose following the given seed.')
+    parser_compose.add_argument('--diversity', type=int, default=40, help='generate music from top k=diversity predictions.')
     parser_compose.add_argument('--gpu', type=int, default=None, help='set GPU id if use gpu to predict, otherwise use CPU.')
-    parser_compose.add_argument('--output_file', type=str, default=os.path.join(sys.path[0], 'examples/sample_output.mid'), help='filename to the generated midi output.')
+    parser_compose.add_argument('--output_file', type=str, default=os.path.join(sys.path[0], '../examples/sample_output.mid'), help='filename to the generated midi output.')
 
     args = parser.parse_args()
 
